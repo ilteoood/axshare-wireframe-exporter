@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node index.js"
   },
+  "bin": {
+    "axshare-wireframe-exporter": "./index.js"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT",

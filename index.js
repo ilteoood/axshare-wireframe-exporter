@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const puppeteer = require("puppeteer");
 const imagesToPdf = require("images-to-pdf");
 const rimraf = require('rimraf');
