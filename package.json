@@ -14,7 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "images-to-pdf": "^1.0.3",
-    "puppeteer": "^21.0.1",
+    "puppeteer": "^22.6.5",
     "rimraf": "^5.0.0"
   }
 }
