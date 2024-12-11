@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 const puppeteer = require("puppeteer");
-const imagesToPdf = require("images-to-pdf");
+const imagesToPdf = require('photo-to-pdf')
 const rimraf = require('rimraf');
 const fs = require("fs");
+const { pipeline } = require("stream/promises");
 const SCREENSHOTS_PATH = "./screenshots";
 
 
@@ -55,8 +56,9 @@ async function takeScreenshot(browserPage, pageUrl, index, { baseUrl, shouldOpen
 
 async function createPdf(pdfName = 'axshare-wireframe-exporter') {
     console.log(`Creating pdf ${pdfName}`);
-    const imagesToJoin = fs.readdirSync(SCREENSHOTS_PATH).map(imageName => `${SCREENSHOTS_PATH}/${imageName}`);
-    await imagesToPdf(imagesToJoin, `${pdfName}.pdf`);
+    const pdf = await imagesToPdf(SCREENSHOTS_PATH, imagesToPdf.sizes.A4, { output: `${pdfName}.pdf` });
+
+    await pipeline(pdf, fs.createWriteStream(`foo.pdf`));
 }
 
 function createScreenshotsDirectory() {
