@@ -1,0 +1,11 @@
+[package]
+name = "axshare-wireframe-exporter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+headless_chrome = "1.0.17"
+
+[[bin]]
+name = "axshare-wireframe-exporter"
+path = "src/main.rs"
