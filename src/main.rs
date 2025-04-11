@@ -1,35 +1,15 @@
 mod args;
+mod browser;
 
 use std::sync::Arc;
 
 use args::Args;
-use headless_chrome::protocol::cdp::Page::CaptureScreenshotFormatOption;
-use headless_chrome::LaunchOptionsBuilder;
-use headless_chrome::{Browser, Tab};
+use headless_chrome::protocol::cdp::Page::{self, CaptureScreenshotFormatOption};
+use headless_chrome::Tab;
 use path::Path;
 use std::{fs, path};
 
 const SCREENSHOTS_PATH: &str = "./screenshots";
-
-fn create_browser_instance() -> Browser {
-    Browser::new(
-        LaunchOptionsBuilder::default()
-            .headless(true)
-            .build()
-            .unwrap(),
-    )
-    .unwrap()
-}
-
-fn create_browser_page(browser_instance: &Browser, base_url: &str) -> Arc<Tab> {
-    let browser_tab = browser_instance.new_tab().unwrap();
-
-    browser_tab.navigate_to(base_url).unwrap();
-
-    browser_tab.wait_until_navigated().unwrap();
-
-    browser_tab
-}
 
 fn extract_urls(browser_tab: &Arc<Tab>) -> Vec<String> {
     println!("Extracting urls");
@@ -57,6 +37,24 @@ fn take_screenshot(browser_tab: &Arc<Tab>, page_url: String, index: usize, args:
     println!("Taking screenshot {} for page {}", index, page_to_go);
     browser_tab.navigate_to(&page_to_go).unwrap();
     browser_tab.wait_until_navigated().unwrap();
+    let html = browser_tab.wait_for_element("html").unwrap();
+
+    browser_tab
+        .call_method(Page::SetDeviceMetricsOverride {
+            width: browser::retrieve_page_width(&html),
+            height: browser::retrieve_page_height(&html),
+            device_scale_factor: 1.0,
+            mobile: false,
+            position_x: Some(0),
+            position_y: Some(0),
+            scale: Some(1.0),
+            screen_width: None,
+            screen_height: None,
+            dont_set_visible_size: Some(false),
+            screen_orientation: None,
+            viewport: None,
+        })
+        .unwrap();
     let screenshot_name = format!("{} - {}.png", index, page_url.replace(".html", ""));
     let png_data = browser_tab
         .capture_screenshot(CaptureScreenshotFormatOption::Png, Some(100), None, true)
@@ -68,8 +66,8 @@ fn take_screenshot(browser_tab: &Arc<Tab>, page_url: String, index: usize, args:
 fn main() {
     let args = Args::from_args();
     println!("Backup of {}", args.base_url);
-    let browser_instance = create_browser_instance();
-    let browser_tab = create_browser_page(&browser_instance, &args.base_url);
+    let browser_instance = browser::create_instance();
+    let browser_tab = browser::create_page(&browser_instance, &args.base_url);
     let urls = extract_urls(&browser_tab);
     create_screenshots_directory();
     for (index, url) in urls.iter().enumerate() {
