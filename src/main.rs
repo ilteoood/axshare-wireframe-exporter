@@ -27,7 +27,7 @@ fn extract_urls(browser_tab: &Arc<Tab>) -> Vec<String> {
 
 fn create_screenshots_directory() {
     println!("Creating screenshots folder {}", SCREENSHOTS_PATH);
-    fs::remove_dir_all(SCREENSHOTS_PATH).unwrap();
+    fs::remove_dir_all(SCREENSHOTS_PATH).unwrap_or_default();
     fs::create_dir(SCREENSHOTS_PATH).unwrap();
 }
 
