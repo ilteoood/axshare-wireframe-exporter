@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use headless_chrome::{Browser, Element, LaunchOptionsBuilder, Tab};
+use headless_chrome::{
+    protocol::cdp::Page::{self, CaptureScreenshotFormatOption},
+    Browser, Element, LaunchOptionsBuilder, Tab,
+};
 
 pub fn create_instance() -> Browser {
     Browser::new(
@@ -54,4 +57,36 @@ pub fn retrieve_page_width(html: &Element) -> u32 {
         }
     "#,
     )
+}
+
+pub fn go_to(browser_tab: &Arc<Tab>, url: &str) {
+    browser_tab.navigate_to(&url).unwrap();
+    browser_tab.wait_until_navigated().unwrap();
+}
+
+pub fn capture_full_width_screenshot(browser_tab: &Arc<Tab>) -> Vec<u8> {
+    let html = browser_tab.wait_for_element("html").unwrap();
+
+    browser_tab
+        .call_method(Page::SetDeviceMetricsOverride {
+            width: retrieve_page_width(&html),
+            height: retrieve_page_height(&html),
+            device_scale_factor: 1.0,
+            mobile: false,
+            position_x: Some(0),
+            position_y: Some(0),
+            scale: Some(1.0),
+            screen_width: None,
+            screen_height: None,
+            dont_set_visible_size: Some(false),
+            screen_orientation: None,
+            viewport: None,
+        })
+        .unwrap();
+
+    let png_data = browser_tab
+        .capture_screenshot(CaptureScreenshotFormatOption::Png, Some(100), None, true)
+        .unwrap();
+
+    png_data
 }

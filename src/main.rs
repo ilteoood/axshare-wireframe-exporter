@@ -4,7 +4,6 @@ mod browser;
 use std::sync::Arc;
 
 use args::Args;
-use headless_chrome::protocol::cdp::Page::{self, CaptureScreenshotFormatOption};
 use headless_chrome::Tab;
 use path::Path;
 use std::{fs, path};
@@ -35,30 +34,10 @@ fn create_screenshots_directory() {
 fn take_screenshot(browser_tab: &Arc<Tab>, page_url: String, index: usize, args: &Args) {
     let page_to_go = format!("{}/{}", args.base_url, page_url);
     println!("Taking screenshot {} for page {}", index, page_to_go);
-    browser_tab.navigate_to(&page_to_go).unwrap();
-    browser_tab.wait_until_navigated().unwrap();
-    let html = browser_tab.wait_for_element("html").unwrap();
+    browser::go_to(browser_tab, &page_to_go);
 
-    browser_tab
-        .call_method(Page::SetDeviceMetricsOverride {
-            width: browser::retrieve_page_width(&html),
-            height: browser::retrieve_page_height(&html),
-            device_scale_factor: 1.0,
-            mobile: false,
-            position_x: Some(0),
-            position_y: Some(0),
-            scale: Some(1.0),
-            screen_width: None,
-            screen_height: None,
-            dont_set_visible_size: Some(false),
-            screen_orientation: None,
-            viewport: None,
-        })
-        .unwrap();
     let screenshot_name = format!("{} - {}.png", index, page_url.replace(".html", ""));
-    let png_data = browser_tab
-        .capture_screenshot(CaptureScreenshotFormatOption::Png, Some(100), None, true)
-        .unwrap();
+    let png_data = browser::capture_full_width_screenshot(&browser_tab);
 
     fs::write(Path::new(SCREENSHOTS_PATH).join(screenshot_name), png_data).unwrap();
 }
