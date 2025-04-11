@@ -85,7 +85,7 @@ pub fn capture_full_width_screenshot(browser_tab: &Arc<Tab>) -> Vec<u8> {
         .unwrap();
 
     let png_data = browser_tab
-        .capture_screenshot(CaptureScreenshotFormatOption::Png, Some(100), None, true)
+        .capture_screenshot(CaptureScreenshotFormatOption::Jpeg, Some(100), None, true)
         .unwrap();
 
     png_data

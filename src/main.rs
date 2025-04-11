@@ -1,12 +1,14 @@
 mod args;
 mod browser;
 
-use std::sync::Arc;
-
 use args::Args;
+use glob::glob;
 use headless_chrome::Tab;
+use jpeg_to_pdf::JpegToPdf;
 use path::Path;
+use std::io::BufWriter;
 use std::{fs, path};
+use std::{fs::File, sync::Arc};
 
 const SCREENSHOTS_PATH: &str = "./screenshots";
 
@@ -36,10 +38,26 @@ fn take_screenshot(browser_tab: &Arc<Tab>, page_url: String, index: usize, args:
     println!("Taking screenshot {} for page {}", index, page_to_go);
     browser::go_to(browser_tab, &page_to_go);
 
-    let screenshot_name = format!("{} - {}.png", index, page_url.replace(".html", ""));
+    let screenshot_name = format!("{} - {}.jpg", index, page_url.replace(".html", ""));
     let png_data = browser::capture_full_width_screenshot(&browser_tab);
 
     fs::write(Path::new(SCREENSHOTS_PATH).join(screenshot_name), png_data).unwrap();
+}
+
+fn create_pdf(args: &Args) {
+    println!("Creating pdf {}", args.pdf_name);
+    let generated_pdf_file = File::create(&args.pdf_name).unwrap();
+
+    let mut jpeg_to_pdf = JpegToPdf::new();
+
+    for entry in glob("./screenshots/*.jpg").unwrap() {
+        let path = entry.unwrap();
+        jpeg_to_pdf = jpeg_to_pdf.add_image(fs::read(path).unwrap());
+    }
+
+    jpeg_to_pdf
+        .create_pdf(&mut BufWriter::new(generated_pdf_file))
+        .unwrap();
 }
 
 fn main() {
@@ -54,4 +72,5 @@ fn main() {
     }
 
     browser_tab.close(false).unwrap();
+    create_pdf(&args);
 }
