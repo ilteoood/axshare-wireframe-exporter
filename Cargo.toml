@@ -1,0 +1,13 @@
+[package]
+name = "axshare-wireframe-exporter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+glob = "0.3.2"
+headless_chrome = "1.0.17"
+jpeg-to-pdf = "0.2.3"
+
+[[bin]]
+name = "axshare-wireframe-exporter"
+path = "src/main.rs"
